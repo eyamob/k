@@ -105,7 +105,7 @@ public class Definition extends ASTNode implements Interfaces.MutableList<Defini
     public void preprocess(org.kframework.kil.loader.Context context, boolean autoinclude) {
         // Collect information
         // this.accept(new AddSymbolicVariablesDeclaration(context, this.getMainSyntaxModule()));
-        new UpdateReferencesVisitor(context).visitNode(this);
+        new UpdateReferencesVisitor().visitNode(this);
         new CollectProductionsVisitor(context).visitNode(this);
         new UpdateAssocVisitor(context).visitNode(this);
         context.computeConses();

@@ -7,8 +7,8 @@ import org.kframework.kil.Syntax;
 import org.kframework.kil.visitors.BasicVisitor;
 
 public class UpdateReferencesVisitor extends BasicVisitor {
-    public UpdateReferencesVisitor(Context context) {
-        super(context);
+    public UpdateReferencesVisitor() {
+        super(null);
     }
 
     private Syntax prodRoot;

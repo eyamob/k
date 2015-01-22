@@ -11,6 +11,7 @@ import org.kframework.kil.Module;
 import org.kframework.kil.ProductionReference;
 import org.kframework.kil.Sort;
 import org.kframework.kil.Sources;
+import org.kframework.kil.Term;
 import org.kframework.kil.loader.CollectPrioritiesVisitor;
 import org.kframework.kil.loader.CollectSubsortsVisitor;
 import org.kframework.kil.loader.Context;
@@ -28,24 +29,25 @@ import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.errorsystem.ParseFailedException;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Set;
 
 /**
  * Test a the kore definition using the new parser.
  * KoreTest has to be run after the distribution has been built (apparently), therefore the name IT at the end.
  */
-public class KoreTest extends BaseTestCase {
+public class RuleParserTest extends BaseTestCase {
 
     @Test
-    public void testKore() throws Exception {
-        String quq = FileUtils.readFileToString(new File(getClass().getResource("/kast/quote-unquote.kore").toURI()));
-        String kore = FileUtils.readFileToString(new File(getClass().getResource("/kast/kore.k").toURI()));
-        Definition def = new Definition();
-        def.setItems(Outer.parse(Sources.generatedBy(KoreTest.class), kore, null));
-        def.setMainModule(((Module) def.getItems().get(def.getItems().size() - 1)).getName());
-        ProductionReference pr = null;
+    public void testRuleParser() throws Exception {
+        String quq = "B => A ~> B";
+        Definition koreDef = readDefFromSingleFile(new File(getClass().getResource("/kast/k.k").toURI()));
+        Definition langDef = readDefFromSingleFile(new File(getClass().getResource("/kast/lang.k").toURI()));
+
+        Term pr = null;
         try {
-            pr = parse(quq, Sort.of("KDefinition"), def, kem);
+            pr = parse(quq, Sort.of("KList"), koreDef, kem);
+            System.out.println(pr);
         } catch (ParseFailedException e) {
             System.err.println(e.getMessage() + " Line: " + e.getKException().getLocation().lineStart + " Column: " + e.getKException().getLocation().columnStart);
             assert false;
@@ -56,7 +58,7 @@ public class KoreTest extends BaseTestCase {
         //Assert.assertEquals("Expected Nullable NTs", true, nc.isNullable(nt1));
     }
 
-    public static ProductionReference parse(String program, Sort startSymbol, Definition definition, KExceptionManager kem) throws ParseFailedException {
+    public static Term parse(String program, Sort startSymbol, Definition definition, KExceptionManager kem) throws ParseFailedException {
         Context context = new Context();
         context.kompileOptions = new KompileOptions();
         context.globalOptions = new GlobalOptions();
@@ -77,7 +79,19 @@ public class KoreTest extends BaseTestCase {
 
         new CollectPrioritiesVisitor(context).visitNode(definition);
 
-        ASTNode out = ProgramLoader.newParserParse(program, grammar.get(startSymbol.toString()), new GeneratedSource(KoreTest.class), context);
-        return (ProductionReference) out;
+        ASTNode out = ProgramLoader.newParserParse(program, grammar.get(startSymbol.toString()), new GeneratedSource(RuleParserTest.class), context);
+        return (Term) out;
+    }
+
+    public static Definition readDefFromSingleFile(File file) throws IOException {
+        String kore = FileUtils.readFileToString(file);
+        Definition definition = new Definition();
+        definition.setItems(Outer.parse(Sources.generatedBy(RuleParserTest.class), kore, null));
+        definition.setMainModule(((Module) definition.getItems().get(definition.getItems().size() - 1)).getName());
+
+        new UpdateReferencesVisitor().visitNode(definition);
+        new FillInModuleContext().visitNode(definition);
+
+        return definition;
     }
 }
