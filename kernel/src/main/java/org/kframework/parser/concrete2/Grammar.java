@@ -569,6 +569,8 @@ public class Grammar implements Serializable {
                 // reject keywords
                 if (!rejects.contains(matcher.group()))
                     results.add(new MatchResult(matcher.end()));
+                else
+                    System.out.println("matcher = " + matcher.group());
             }
             return results;
         }

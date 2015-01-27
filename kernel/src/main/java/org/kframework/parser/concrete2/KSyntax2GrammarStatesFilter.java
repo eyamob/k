@@ -184,7 +184,7 @@ public class KSyntax2GrammarStatesFilter extends BasicVisitor {
                 }
                 // ************************************** end of list creation **********************
             }
-        } else if (prd.isLexical()) {
+        } else if (prd.isLexical() && false) {
             // T ::= Token{regex}
             // these kind of productions create KApps which contain token elements
             Lexical lx = prd.getLexical();
@@ -258,8 +258,14 @@ public class KSyntax2GrammarStatesFilter extends BasicVisitor {
                     assert false : "Didn't expect this ProductionItem type: " + prdItem.getClass().getName();
                 }
             }
+            Pattern r = null;
+            if (prd.containsAttribute("rejectt")) {
+                r = Pattern.compile(prd.getAttribute("rejectt"));
+                System.out.println("r = " + r);
+            }
+
             RuleState labelRule = new RuleState("AddLabelRS",
-                    nt, new WrapLabelRule(prd));
+                    nt, new WrapLabelRule(prd, r));
             previous.next.add(labelRule);
             previous = labelRule;
         }
